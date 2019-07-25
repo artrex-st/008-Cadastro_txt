@@ -1,0 +1,106 @@
+unit ufrmCadastroTXT;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, System.ImageList,
+  Vcl.ImgList, Vcl.StdCtrls;
+
+type
+  TForm1 = class(TForm)
+    pnTop1: TPanel;
+    btnAdd: TButton;
+    btnEdit: TButton;
+    btnSave: TButton;
+    btnDel: TButton;
+    lblCpf: TLabel;
+    lblNome: TLabel;
+    lblCidade: TLabel;
+    edtCpf: TEdit;
+    edtName: TEdit;
+    edtCity: TEdit;
+    ImageList1: TImageList;
+    procedure FormKeyPress(Sender: TObject; var Key: Char);
+    procedure btnAddClick(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure btnEditClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+
+    {
+      flag incluir : bool
+      limpa campos
+      habilitar botoes
+      --
+      carregar cadastro (**primeiro) extractFilePatch
+      salvar cadastro
+      carregar cadastro (index:int)
+
+    }
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+    lista :TStringList;
+  end;
+
+var
+  Form1: TForm1;
+
+implementation
+
+{$R *.dfm}
+
+
+
+
+procedure TForm1.btnAddClick(Sender: TObject);
+
+begin
+  try
+    if(Length(edtCpf.Text)>0)then
+      begin
+        lista.Add(edtCpf.Text);
+        lista.Add(edtName.Text);
+        lista.Add(edtCity.Text);
+      end;
+
+  finally
+    //lista.Free;
+  end;
+
+end;
+
+procedure TForm1.btnEditClick(Sender: TObject);
+var
+i:integer;
+cpf,nome,cidade:string;
+begin
+    edtName.Text:=lista[0];
+    edtCity.Text:=lista[1];
+    edtCpf.Text:=lista[2];
+    ShowMessage(IntToStr(lista.Count));
+end;
+
+procedure TForm1.FormClose(Sender: TObject; var Action: TCloseAction); //// DESTRUCTION
+begin
+  lista.Free;
+end;
+
+procedure TForm1.FormCreate(Sender: TObject); /// CREATE
+begin
+    lista := TStringList.Create();
+end;
+
+procedure TForm1.FormKeyPress(Sender: TObject; var Key: Char);
+begin
+ if Key =#27 then    //tem que verificar o keyPreviw
+    close;
+  if key = #13 then
+    begin
+      key := #0;
+      perform(wm_nextdlgctl,0,0);
+    end;
+end;
+
+end.

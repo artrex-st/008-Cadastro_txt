@@ -1,0 +1,471 @@
+﻿unit ufrmCadastroTXT;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, System.ImageList,
+  Vcl.ImgList, Vcl.StdCtrls, Vcl.Mask;
+
+type
+  TForm1 = class(TForm)
+    pnTop1: TPanel;
+    btnAdd: TButton;
+    btnEdit: TButton;
+    btnSave: TButton;
+    btnDel: TButton;
+    lblCpf: TLabel;
+    lblNome: TLabel;
+    lblCidade: TLabel;
+    edtCpf2: TEdit;
+    edtName: TEdit;
+    edtCity: TEdit;
+    ImageList1: TImageList;
+    btnBack: TButton;
+    btnNext: TButton;
+    btnCancel: TButton;
+    pnIndex: TPanel;
+    emCpf: TMaskEdit;
+    procedure FormKeyPress(Sender: TObject; var Key: Char);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure FormCreate(Sender: TObject);
+    procedure CarregarCadastro();
+    procedure btnAddClick(Sender: TObject);
+    //procedure AddCadastro(cpf: integer;nome,cidade: string);
+    procedure CarregarTela();
+    procedure Salvar();
+    procedure btnSaveClick(Sender: TObject);
+    procedure Ativo();
+    procedure btnBackClick(Sender: TObject);
+    procedure btnNextClick(Sender: TObject);
+    procedure btnEditClick(Sender: TObject);
+    procedure Editar();
+    procedure AdicionarCadastro();
+    procedure btnDelClick(Sender: TObject);
+    procedure LimparCampos();
+    procedure btnCancelClick(Sender: TObject);
+    procedure MostraIndex();
+    function Verificar():Boolean;
+
+  private
+    { Private declarations }
+     editCad:Boolean;
+    {
+      flag incluir : bool
+      limpa campos
+      habilitar botoes
+    }
+  public
+    { Public declarations }
+    lista :TStringList;
+    contLista : integer;
+    localCadastro,local:string;
+
+    {
+    carregar cadastro (**primeiro) extractFilePatch
+    salvar cadastro
+    carregarCadastro (index:int)
+    }
+  end;
+
+var
+  Form1: TForm1;
+
+implementation
+
+{$R *.dfm}
+
+uses uClasses;
+
+procedure TForm1.AdicionarCadastro;    ///////////////////////////////////////// Adicionar cadastro  (falta validação)
+var
+linha : string ;
+cadastro : Tcadastro ;
+begin
+    //corrigido (estava com erro de index) [em vez de criar o objeto eu estava editando o index]
+    cadastro:=Tcadastro.Create;
+    //puxando cambos PARA o cadastro
+    cadastro.nome := edtName.Text;
+    cadastro.cidade := edtCity.Text;
+    cadastro.cpf := StrToFloat(emCpf.Text);
+    lista.AddObject('',cadastro); ////lista que guarda o cadastro em memoria
+    contLista := lista.Count-1; ////manda para o ultimo registro
+end;
+
+procedure TForm1.Ativo;
+begin
+  if btnSave.Enabled=false then
+    begin
+      btnAdd.Enabled:=false;
+      btnEdit.Enabled:=false;
+      btnDel.Enabled:=false;
+      btnNext.Enabled:=false;
+      btnBack.Enabled:=false;
+      btnSave.Enabled:=true;
+      //edit
+      emCpf.Enabled:=true;
+      edtName.Enabled:=true;
+      edtCity.Enabled:=true;
+    end
+      else
+        begin
+          btnAdd.Enabled:=true;
+          btnEdit.Enabled:=true;
+          btnDel.Enabled:=true;
+          btnNext.Enabled:=true;
+          btnBack.Enabled:=true;
+          btnSave.Enabled:=false;
+          //edit
+          emCpf.Enabled:=false;
+          edtName.Enabled:=false;
+          edtCity.Enabled:=false;
+        end
+end;
+
+procedure TForm1.btnAddClick(Sender: TObject);   // CLICK ADD
+begin
+editCad:=false;
+Ativo();
+LimparCampos();
+btnCancel.Enabled:=true;
+pnIndex.Caption:='Adicionando registro: '+IntToStr(lista.Count+1)+'.';
+end;
+
+// AVANÇAR E VOLTAR \\
+procedure TForm1.btnBackClick(Sender: TObject);   ////////////////////// voltar
+begin
+  if contLista>=1 then
+    begin
+      contLista:=contLista-1;
+      CarregarTela();
+      btnNext.Enabled:=true;
+    end
+    else
+      begin
+        btnBack.Enabled:=false;
+        ShowMessage('Inicio dos cadastros atingido.');
+      end;
+end;
+
+procedure TForm1.btnCancelClick(Sender: TObject);  //  BTN_CANCEL
+begin
+  Ativo();
+  CarregarTela();
+  btnCancel.Enabled:=false;
+end;
+
+procedure TForm1.btnNextClick(Sender: TObject);   ///////////////////// avançar
+begin
+if contLista<lista.Count-1 then
+    begin
+      contLista:=contLista+1;
+      CarregarTela();
+      btnBack.Enabled:=true;
+    end
+    else
+      begin
+        btnNext.Enabled:=false;
+        ShowMessage('Fim dos cadastros atingido.');
+        if lista.Count-1=0 then
+          btnBack.Enabled:=false;
+      end;
+end;
+
+procedure TForm1.btnDelClick(Sender: TObject);
+var
+  cadastro:Tcadastro;
+  arq:TextFile;
+begin
+   //atribuindo o objeto do index ao cadastro
+    CarregarTela();
+    if lista.Count-1>=1 then
+      begin
+        cadastro:=Tcadastro(lista.Objects[contLista]);
+        lista.Objects[contLista].Free;
+        lista.Delete(contLista);
+        contLista:=lista.Count-1;
+        CarregarTela();
+      end
+      else
+        begin
+         //ShowMessage('Ultimo cadastro ainda não pode ser excluido.');
+          cadastro:=Tcadastro(lista.Objects[contLista]);
+          lista.Objects[contLista].Free;
+          lista.Delete(contLista);
+          contLista:=lista.Count-2;
+          LimparCampos();
+          btnEdit.Enabled:=false;
+          btnDel.Enabled:=false;
+          AssignFile(arq, localCadastro);
+          Rewrite(arq);
+          CloseFile(arq);
+        end;
+
+end;
+
+procedure TForm1.btnEditClick(Sender: TObject);
+begin
+editCad:=true;
+Ativo();
+btnCancel.Enabled:=false;
+end;
+
+procedure TForm1.btnSaveClick(Sender: TObject);
+begin
+  if verificar() then
+    begin
+      Salvar();
+      Ativo();
+    end;
+  btnCancel.Enabled:=false;
+end;
+
+procedure TForm1.CarregarCadastro; ///////////////////////////////////////////// carregar txt para a memoria
+var
+localCadastro, linha : string ;
+arq : TextFile ;
+auxList : TStringList ;
+i : integer ;
+objPessoa : Tcadastro ;
+begin
+  MostraIndex();
+  localCadastro := Copy(ExtractFilePath(System.CmdLine), 2, Length(ExtractFilePath(System.CmdLine)) - 1) + 'Cadastro.txt';
+  if FileExists(localCadastro) then
+    begin
+      AssignFile(arq,localCadastro);
+      auxList := TStringList.Create ;
+      try
+        Reset(arq);
+      while not Eof(arq) do
+        begin
+          Readln(arq,Linha);
+          auxList.Delimiter := ';' ;
+          auxList.StrictDelimiter := true ;
+          auxList.DelimitedText := linha ;
+          objPessoa := Tcadastro.Create;
+          for i := 0 to auxList.Count-1 do
+            begin
+            if i = 0 then ////cpf
+              begin
+                objPessoa.cpf := strtofloat(auxList.Strings[i]);
+              end
+            else if i = 1 then ////nome
+              begin
+                objPessoa.nome := auxList.Strings[i];
+              end
+            else if i = 2 then ////cidade
+              begin
+               objPessoa.cidade := auxList.Strings[i];
+              end;
+            end;
+          lista.AddObject('',objPessoa); ////lista que guarda o cadastro em memoria
+          contLista := lista.Count-1; ////manda para o ultimo registro      ####################################
+        end;
+      finally
+        CloseFile(arq);
+        auxList.Free ;
+      end;
+    end;
+end;
+
+procedure TForm1.CarregarTela;   /////////////////////////////////////////////// carregar tela
+var
+  cadastro:Tcadastro;
+begin
+   //atribuindo o objeto do index ao cadastro
+    cadastro:=Tcadastro(lista.Objects[contLista]);
+    if contLista>=0 then
+    begin
+      edtName.Text := cadastro.nome;
+      edtCity.Text := cadastro.cidade;
+      emCpf.Text := FloatToStr(cadastro.cpf);
+      MostraIndex();
+      btnDel.Enabled:=true;
+    end
+    else
+      begin
+        btnDel.Enabled:=false;
+      end;
+    //puxando cambos do cadastro
+
+end;
+
+procedure TForm1.Editar;  ////////////////////////////////////////////////////// EDITAR
+var
+  cadastro:Tcadastro;
+begin
+   //atribuindo o objeto do index ao cadastro
+    cadastro:=Tcadastro(lista.Objects[contLista]);
+    //puxando cambos do cadastro
+    cadastro.nome := edtName.Text;
+    cadastro.cidade := edtCity.Text;
+    cadastro.cpf := StrToFloat(emCpf.Text);
+    lista.Objects[contLista]:=cadastro; ////lista que guarda o cadastro em memoria
+    contLista := lista.Count-1; ////manda para o ultimo registro
+end;
+
+procedure TForm1.FormClose(Sender: TObject; var Action: TCloseAction); //// DESTRUCTION  ////////////////
+var
+  i: integer;
+  linha:string;
+  arq:TextFile;
+  cadastro:Tcadastro;
+begin
+if FileExists(localCadastro) then
+  begin
+    if lista.Count>0 then
+      begin
+        AssignFile(arq, localCadastro);
+        Rewrite(arq);
+        for i := 0 To lista.Count-1 do
+        begin
+          cadastro:=Tcadastro(lista.Objects[i]);
+          linha := FloatToStr(cadastro.cpf)+';'+cadastro.nome+';'+cadastro.cidade;
+          Writeln(arq,linha);
+        end;
+        CloseFile(arq);
+        for i := lista.Count-1 downto 0 do
+        begin
+          lista.Objects[i].Free;
+        end;
+      end;
+  end;
+  lista.Free;
+end;                                                                            
+
+procedure TForm1.FormCreate(Sender: TObject); ////////////////////////////////// CREATE (abrindo programa) //////////////////
+var
+  arq: TextFile;
+  fimArq:Boolean;
+begin
+  lista := TStringList.Create(); //instancia a Lista
+  localCadastro := Copy(ExtractFilePath(System.CmdLine), 2, Length(ExtractFilePath(System.CmdLine)) - 1) + 'Cadastro.txt';
+  if lista.Count<=0 then
+    btnEdit.Enabled:=false;
+
+  if FileExists(localCadastro) then
+    begin
+      if (not Eof(arq)) then
+      begin
+        CarregarCadastro();    //carrega e/ou cria o arquivo
+        if (lista.Count-1>=0) then
+          begin
+            CarregarTela();
+            btnEdit.Enabled:=true;
+          end;
+      end;
+
+    end
+      else
+        begin
+          AssignFile(arq, localCadastro); //redundancia
+          Rewrite(arq);
+          CloseFile(arq);
+          btnNext.Enabled:=false;
+          btnBack.Enabled:=false;
+        end;
+    if lista.Count<0 then
+      btnEdit.Enabled:=false;
+    contLista:=lista.Count-1;
+end;
+
+procedure TForm1.FormKeyPress(Sender: TObject; var Key: Char);
+begin
+ if Key =#27 then    //tem que verificar o keyPreviw
+    close;
+  if key = #13 then
+    begin
+      key := #0;
+      perform(wm_nextdlgctl,0,0);
+    end;
+end;
+
+procedure TForm1.LimparCampos;
+begin
+emCpf.Clear;
+edtName.Clear;
+edtCity.Clear;
+btnCancel.Enabled:=true;
+end;
+
+procedure TForm1.MostraIndex;
+begin
+  pnIndex.Caption:='Cadastro numero:'+IntToStr(contLista+1)+'.';
+end;
+
+procedure TForm1.Salvar();
+var
+  linha:string;
+  arq: TextFile; { declarando a variável "arq" do tipo arquivo texto }
+  i: integer;
+begin
+  if FileExists(localCadastro) then
+    begin
+      try
+        AssignFile(arq, localCadastro);
+        if editCad=false then
+          begin
+            Append(arq);
+            linha := edtCpf.Text+';'+edtName.Text+';'+edtCity.Text;
+            Writeln(arq,linha);
+            CloseFile(arq);
+            AdicionarCadastro();
+          end
+          else
+            Editar();
+        ShowMessage('Adicionado.');
+      except
+      end
+    end
+    else
+      try
+        AssignFile(arq, localCadastro);
+        if editCad=false then
+          begin
+            Rewrite(arq);
+            linha := edtCpf.Text+';'+edtName.Text+';'+edtCity.Text;
+            Writeln(arq,linha);
+            CloseFile(arq);
+            AdicionarCadastro();
+          end;
+
+        ShowMessage('Adicionado.');
+      except
+      end;
+    editCad:=false;
+    contLista:=lista.Count-1;
+    CarregarTela();
+end;
+
+function TForm1.Verificar: Boolean;
+begin
+  if (Length(emCpf.Text)<=11) then
+    begin
+      Application.MessageBox('CPF invalido','Digitação de Valores',MB_OK+MB_ICONWARNING);
+      //contLista:=lista.Count-1;
+      btnCancel.Enabled:=true;
+      Result:=false;
+    end
+    else
+    if Length(edtName.Text)<=0 then
+      begin
+        Application.MessageBox('Nome invalido','Digitação de Valores',MB_OK+MB_ICONWARNING);
+        //contLista:=lista.Count-1;
+        btnCancel.Enabled:=true;
+        Result:=false;
+      end
+      else
+        if Length(edtCity.Text)<=0 then
+          begin
+            Application.MessageBox('Cidade invalido','Digitação de Valores',MB_OK+MB_ICONWARNING);
+            //contLista:=lista.Count-1;
+            btnCancel.Enabled:=true;
+            Result:=false;
+          end
+          else
+            begin
+              Result:=true;
+            end;
+end;
+
+end.

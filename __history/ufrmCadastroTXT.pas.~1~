@@ -1,0 +1,40 @@
+unit ufrmCadastroTXT;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls;
+
+type
+  TForm1 = class(TForm)
+    Panel1: TPanel;
+    procedure FormKeyPress(Sender: TObject; var Key: Char);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  Form1: TForm1;
+
+implementation
+
+{$R *.dfm}
+
+
+
+
+procedure TForm1.FormKeyPress(Sender: TObject; var Key: Char);
+begin
+ if Key =#27 then    //tem que verificar o keyPreviw
+    close;
+  if key = #13 then
+    begin
+      key := #0;
+      perform(wm_nextdlgctl,0,0);
+    end;
+end;
+
+end.

@@ -1,0 +1,156 @@
+unit ufrmCadastroTXT;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, System.ImageList,
+  Vcl.ImgList, Vcl.StdCtrls;
+
+type
+  TForm1 = class(TForm)
+    pnTop1: TPanel;
+    btnAdd: TButton;
+    btnEdit: TButton;
+    btnSave: TButton;
+    btnDel: TButton;
+    lblCpf: TLabel;
+    lblNome: TLabel;
+    lblCidade: TLabel;
+    edtCpf: TEdit;
+    edtName: TEdit;
+    edtCity: TEdit;
+    ImageList1: TImageList;
+    procedure FormKeyPress(Sender: TObject; var Key: Char);
+    procedure btnAddClick(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure btnEditClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure CarregarCadastro();
+    {
+      flag incluir : bool
+      limpa campos
+      habilitar botoes
+      --
+      carregar cadastro (**primeiro) extractFilePatch
+      salvar cadastro
+      carregar cadastro (index:int)
+
+    }
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+    lista :TStringList;
+  end;
+
+var
+  Form1: TForm1;
+
+implementation
+
+{$R *.dfm}
+
+uses uClasses;
+
+
+
+
+procedure TForm1.btnAddClick(Sender: TObject);
+
+begin
+  try
+    if(Length(edtCpf.Text)>0)then
+      begin
+        lista.Add(edtCpf.Text);
+        lista.Add(edtName.Text);
+        lista.Add(edtCity.Text);  //igual o cadastro anterior  -- use no cadastro
+      end;
+
+  finally
+    //lista.Free;
+  end;
+
+end;
+
+procedure TForm1.btnEditClick(Sender: TObject);
+var
+i:integer;
+cpf,nome,cidade:string;
+begin
+    edtName.Text:=lista[0];
+    edtCity.Text:=lista[1];
+    edtCpf.Text:=lista[2];
+    ShowMessage(IntToStr(lista.Count));
+end;
+
+procedure TForm1.CarregarCadastro;
+begin
+var
+pathCadastro, linha : string ;
+arq : TextFile ;
+auxList : TStringList ;
+i : integer ;
+objPessoa : TPessoas ;
+begin
+  pathCadastro := Copy(ExtractFilePath(System.CmdLine), 2, Length(ExtractFilePath(System.CmdLine)) - 1) + 'Cadastro.txt';
+  if FileExists(pathCadastro) then
+    begin
+    AssignFile(arq,pathCadastro);
+    auxList := TStringList.Create ;
+    try
+    Reset(arq);
+    while not Eof(arq) do
+      begin
+      Readln(arq,Linha);
+      auxList.Delimiter := ';' ;
+      auxList.StrictDelimiter := true ;
+      auxList.DelimitedText := linha ;
+      objPessoa := TPessoas.Create ;
+      for I := 0 to auxList.Count-1 do
+        begin
+        if i = 0 then ////cpf
+          begin
+            objPessoa.cpf := strtofloat(auxList.Stringsi) ;
+          end
+        else if i = 1 then ////nome
+          begin
+            objPessoa.nome := auxList.Stringsi ;
+          end
+        else if i = 2 then ////cidade
+          begin
+            objPessoa.cidade := auxList.Stringsi ;
+          end;
+        end;
+        ListaCadastro.AddObject('',objPessoa) ; ////lista que guarda o cadastro em memoria
+        ILinhaCadastro := ListaCadastro.Count-1 ; ////manda para o ultimo registro
+        end;
+      finally
+      CloseFile(arq);
+      auxList.Free ;
+      end;
+    end;
+end;
+
+procedure TForm1.FormClose(Sender: TObject; var Action: TCloseAction); //// DESTRUCTION
+begin
+  lista.Free;
+end;
+
+procedure TForm1.FormCreate(Sender: TObject); /// CREATE
+begin
+    lista := TStringList.Create();
+end;
+
+procedure TForm1.FormKeyPress(Sender: TObject; var Key: Char);
+begin
+ if Key =#27 then    //tem que verificar o keyPreviw
+    close;
+  if key = #13 then
+    begin
+      key := #0;
+      perform(wm_nextdlgctl,0,0);
+    end;
+end;
+
+end.

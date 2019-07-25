@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>2019/06/14 16:32:19.000.823,=C:\Users\admin\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2019/06/14 16:34:16.000.991,C:\Users\admin\Documents\Embarcadero\Studio\Projects\Unit1.dfm=C:\Users\admin\OneDrive\Delphi - PC\008-Cadastro_txt\ufrmCadastroTXT.dfm</Transaction>
+    <Transaction>2019/06/14 16:34:16.000.991,C:\Users\admin\Documents\Embarcadero\Studio\Projects\Unit1.pas=C:\Users\admin\OneDrive\Delphi - PC\008-Cadastro_txt\ufrmCadastroTXT.pas</Transaction>
+    <Transaction>2019/06/14 16:34:24.000.884,C:\Users\admin\Documents\Embarcadero\Studio\Projects\Project1.dproj=C:\Users\admin\OneDrive\Delphi - PC\008-Cadastro_txt\CadastroTXT.dproj</Transaction>
+    <Transaction>2019/06/15 08:52:30.000.119,=C:\Users\Arthur\OneDrive\Delphi- NoteBook\uClasses.pas</Transaction>
+  </Transactions>
+</BorlandProject>

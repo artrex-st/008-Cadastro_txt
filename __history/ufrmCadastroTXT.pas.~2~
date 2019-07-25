@@ -1,0 +1,52 @@
+unit ufrmCadastroTXT;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, System.ImageList,
+  Vcl.ImgList, Vcl.StdCtrls;
+
+type
+  TForm1 = class(TForm)
+    pnTop1: TPanel;
+    btnAdd: TButton;
+    btnEdit: TButton;
+    btnSave: TButton;
+    btnDel: TButton;
+    lblCpf: TLabel;
+    lblNome: TLabel;
+    lblCidade: TLabel;
+    edtCpf: TEdit;
+    edtName: TEdit;
+    edtCity: TEdit;
+    ImageList1: TImageList;
+    procedure FormKeyPress(Sender: TObject; var Key: Char);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  Form1: TForm1;
+
+implementation
+
+{$R *.dfm}
+
+
+
+
+procedure TForm1.FormKeyPress(Sender: TObject; var Key: Char);
+begin
+ if Key =#27 then    //tem que verificar o keyPreviw
+    close;
+  if key = #13 then
+    begin
+      key := #0;
+      perform(wm_nextdlgctl,0,0);
+    end;
+end;
+
+end.
